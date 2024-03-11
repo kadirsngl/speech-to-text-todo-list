@@ -3,10 +3,7 @@ let inputText = document.getElementById("inputText")
 let container = document.getElementById("container")
 let containerBtn = document.getElementById("containerBtn" )
 let toDoContainer = document.getElementById("toDoContainer")
-let recognition = new webkitSpeechRecognition() || speechRecognition();
-let stopBtn = document.createElement("button");
-let toDoParagraph;
-let checkbox;
+let recognition = new webkitSpeechRecognition()  || speechRecognition();
 
 recognition.interimResults = true;
 recognition.continuous = true;
@@ -15,7 +12,9 @@ recognition.onresult = event => {
     inputText.textContent = result;
 };
 
-function startListening(){
+let stopBtn = document.createElement("button");
+
+speakBtn.addEventListener("click", function() {
     speakBtn.value = "Listening..";
     speakBtn.style.backgroundColor = "orange";
     speakBtn.style.fontSize ="20px"
@@ -24,22 +23,22 @@ function startListening(){
     stopBtn.setAttribute('class', 'stopBtn');
     stopBtn.textContent= "STOP";
     recognition.start();
-}
+    // speakBtn.disabled = true;  // zaten fonksiyon sırasında butonu deaktif ettiğim için bu koda gerek yok.
+})
 
-function stopListening(){
+
+stopBtn.addEventListener("click", function() {
     speakBtn.value = "LET'S SPEAK";
     speakBtn.style.fontSize = "16px";
     speakBtn.style.backgroundColor = "#00E0FF";
     recognition.stop();
-}
-
-function createElement(){
+    
     let toDoList = document.createElement("div");
-    toDoParagraph = document.createElement("input");
-    checkbox = document.createElement("input");
+    let toDoParagraph = document.createElement("input");
+    let checkbox = document.createElement("input");
     checkbox.type="checkbox";
     let clearBtn = document.createElement("button");
-
+    
     toDoList.setAttribute("class", "toDoList")
     toDoParagraph.setAttribute("class","toDoParagraph");
     checkbox.setAttribute("class","checkbox");
@@ -50,39 +49,14 @@ function createElement(){
     toDoList.appendChild(toDoParagraph);
     toDoList.appendChild(checkbox);;
     toDoList.appendChild(clearBtn);
-
-    clearBtn.addEventListener("click", function() {
-        toDoList.remove(toDoList);
-        localStorage.removeItem("todoData");
-    });
-}
-
-
-
-
-speakBtn.addEventListener("click", function(){
-    startListening()
-})
-
-stopBtn.addEventListener( "click", function(){
-    stopListening()
-    createElement()
-
+    
     toDoParagraph.value = inputText.value
     
     stopBtn.remove();
     inputText.value=""
 
-    let todoData = JSON.stringify(toDoParagraph.value);
-
-    let array = []
-    let todoDate = {
-        todo: toDoParagraph.value,
-        createdAt: new Date().toLocaleString(),
-        isCompleted : checkbox.checked
-    }
-    array.push(todoDate)
-    localStorage.setItem("todoData",JSON.stringify(array));
+    let jsonString = JSON.stringify(toDoParagraph.value);
+    localStorage.setItem("todoData",jsonString);
     
     checkbox.addEventListener("change",function() {
         if (this.checked) {
@@ -91,27 +65,37 @@ stopBtn.addEventListener( "click", function(){
             toDoParagraph.style.textDecoration = "none";
         }
     });
-
+    
     clearBtn.addEventListener("click", function() {
-        toDoList.remove(toDoList);
-        localStorage.removeItem("todoData");
-    });
+        toDoList.remove(toDoList)
+        localStorage.removeItem("todoData")
+    })
 })
 
-document.addEventListener("DOMContentLoaded", (e)=> {
+// let jsonParse = JSON.parse(localStorage.getItem("todoData"));
+
+document.addEventListener( 'DOMContentLoaded', (e)=> {
     let jsonParse = JSON.parse(localStorage.getItem("todoData"));
-    
-    for (let item of jsonParse) {
+    if(jsonParse) {
+        let toDoList = document.createElement("div");
+        let toDoParagraph = document.createElement("input");
+        let checkbox = document.createElement("input");
+        checkbox.type="checkbox";
+        let clearBtn = document.createElement("button");
         
-        console.log(item.todo);
+        toDoList.setAttribute("class", "toDoList")
+        toDoParagraph.setAttribute("class","toDoParagraph");
+        checkbox.setAttribute("class","checkbox");
+        clearBtn.setAttribute("class","clearBtn");
+        clearBtn.innerHTML = "Clear"
         
-          }
-    if (jsonParse) {
-        stopListening()
-        createElement()
-    
+        toDoContainer.appendChild(toDoList);
+        toDoList.appendChild(toDoParagraph);
+        toDoList.appendChild(checkbox);;
+        toDoList.appendChild(clearBtn);
+        
         toDoParagraph.value = jsonParse
-        
+
         checkbox.addEventListener("change",function() {
             if (this.checked) {
                 toDoParagraph.style.textDecoration = "line-through";
@@ -119,10 +103,10 @@ document.addEventListener("DOMContentLoaded", (e)=> {
                 toDoParagraph.style.textDecoration = "none";
             }
         });
-
+        
         clearBtn.addEventListener("click", function() {
-            toDoList.remove(toDoList);
-            localStorage.removeItem("todoData");
-        });
+            toDoList.remove(toDoList)
+            localStorage.removeItem("todoData")
+        })
     }
 })

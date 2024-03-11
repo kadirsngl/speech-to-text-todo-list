@@ -8,6 +8,10 @@ let stopBtn = document.createElement("button");
 let toDoParagraph;
 let checkbox;
 
+document.addEventListener( "DOMContentLoaded", function(){
+    loadTodo()
+})
+
 recognition.interimResults = true;
 recognition.continuous = true;
 recognition.onresult = event => {
@@ -33,12 +37,15 @@ function stopListening(){
     recognition.stop();
 }
 
-function createElement(){
+function createElement(todoItem){
     let toDoList = document.createElement("div");
     toDoParagraph = document.createElement("input");
     checkbox = document.createElement("input");
     checkbox.type="checkbox";
     let clearBtn = document.createElement("button");
+
+    toDoParagraph.value = todoItem ?  todoItem.todo : ""
+    checkbox.checked = todoItem ? todoItem.isCompleted : false
 
     toDoList.setAttribute("class", "toDoList")
     toDoParagraph.setAttribute("class","toDoParagraph");
@@ -55,10 +62,8 @@ function createElement(){
         toDoList.remove(toDoList);
         localStorage.removeItem("todoData");
     });
+
 }
-
-
-
 
 speakBtn.addEventListener("click", function(){
     startListening()
@@ -66,63 +71,37 @@ speakBtn.addEventListener("click", function(){
 
 stopBtn.addEventListener( "click", function(){
     stopListening()
-    createElement()
-
-    toDoParagraph.value = inputText.value
-    
+    addTodo()
     stopBtn.remove();
-    inputText.value=""
+})
 
-    let todoData = JSON.stringify(toDoParagraph.value);
+function addTodo() {
+    let todoData = {
+        todo: inputText.value,
+        id: Date.now(),
+        isCompleted: false
+    }
+    createElement(todoData)
+    saveTodo()
+    inputText.value = ""
+}
 
-    let array = []
-    let todoDate = {
+function saveTodo() {
+    let todos = []
+    document.querySelectorAll(".toDoList").forEach(function(toDoList) {
+    let toDoParagraph = toDoList.querySelector(".toDoParagraph");
+    let checkbox = toDoList.querySelector(".checkbox");
+    todos.push({
         todo: toDoParagraph.value,
-        createdAt: new Date().toLocaleString(),
-        isCompleted : checkbox.checked
-    }
-    array.push(todoDate)
-    localStorage.setItem("todoData",JSON.stringify(array));
-    
-    checkbox.addEventListener("change",function() {
-        if (this.checked) {
-            toDoParagraph.style.textDecoration = "line-through";
-        } else {
-            toDoParagraph.style.textDecoration = "none";
-        }
-    });
-
-    clearBtn.addEventListener("click", function() {
-        toDoList.remove(toDoList);
-        localStorage.removeItem("todoData");
-    });
-})
-
-document.addEventListener("DOMContentLoaded", (e)=> {
-    let jsonParse = JSON.parse(localStorage.getItem("todoData"));
-    
-    for (let item of jsonParse) {
+        id: Date.now(),
+        checkbox: checkbox.checked,
         
-        console.log(item.todo);
-        
-          }
-    if (jsonParse) {
-        stopListening()
-        createElement()
-    
-        toDoParagraph.value = jsonParse
-        
-        checkbox.addEventListener("change",function() {
-            if (this.checked) {
-                toDoParagraph.style.textDecoration = "line-through";
-            } else {
-                toDoParagraph.style.textDecoration = "none";
-            }
-        });
+    })
+    })
+    localStorage.setItem('todoData', JSON.stringify(todos))
+};
 
-        clearBtn.addEventListener("click", function() {
-            toDoList.remove(toDoList);
-            localStorage.removeItem("todoData");
-        });
-    }
-})
+function loadTodo() {
+    let todos = JSON.parse(localStorage.getItem('todoData')) || [];
+    todos.forEach(createElement)
+}
